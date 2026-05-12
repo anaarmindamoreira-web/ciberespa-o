@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missão Ciber-higiene: Navegar com Segurança</title>
+    <!-- Tailwind CSS para Design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React e Babel para a lógica -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; }
+        
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Cores personalizadas para os níveis */
+        .level-1 { border-color: #ef4444; color: #b91c1c; }
+        .level-2 { border-color: #f59e0b; color: #b45309; }
+        .level-3 { border-color: #3b82f6; color: #1d4ed8; }
+        .level-4 { border-color: #10b981; color: #047857; }
+        .level-5 { border-color: #8b5cf6; color: #6d28d9; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Componente de Ícone Lucide
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        const shuffleArray = (array) => {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        };
+
+        const levelsInfo = [
+            { level: 5, label: "Mestre da Cibersegurança", color: "text-purple-700", bg: "bg-purple-50", icon: "award", desc: "Comportamento exemplar. Domínio técnico e forte sentido crítico na proteção de dados e prevenção de ameaças, ajudando ativamente a comunidade." },
+            { level: 4, label: "Defensor Ativo", color: "text-blue-700", bg: "bg-blue-50", icon: "shield-check", desc: "Práticas seguras consolidadas. Usa as ferramentas de proteção e desconfia sistematicamente de ameaças online." },
+            { level: 3, label: "Utilizador Atento", color: "text-teal-700", bg: "bg-teal-50", icon: "eye", desc: "Conhece os riscos básicos e adota algumas medidas, mas ainda comete falhas de segurança por conveniência." },
+            { level: 2, label: "Navegador Imprudente", color: "text-amber-700", bg: "bg-amber-50", icon: "alert-circle", desc: "Zona de risco. Comportamento reativo, usando atalhos que comprometem a segurança (passwords repetidas, cliques impulsivos)." },
+            { level: 1, label: "Vulnerável Digital", color: "text-red-700", bg: "bg-red-50", icon: "alert-triangle", desc: "Exposição máxima. Ausência de práticas de ciber-higiene, colocando dados pessoais e profissionais em perigo constante." }
+        ];
+
+        const scenariosData = [
+            {
+                id: 1,
+                title: "O Email do Banco (Phishing)",
+                context: "Recebes um e-mail com o logótipo do teu banco informando que a tua conta foi bloqueada. A mensagem pede que cliques num link com urgência para confirmar o teu NIF e palavra-passe.",
+                dilema: "Como reages perante este e-mail alarmante?",
+                options: [
+                    { level: 1, text: "Clico logo no link e insiro os dados rapidamente para não ficar com a conta bloqueada.", feedback: "Nível 1: Exposição Imediata. Caíste num ataque de Phishing. Os bancos nunca pedem passwords por email.", points: 2 },
+                    { level: 2, text: "Respondo ao e-mail a perguntar se é mesmo o banco e aguardo pela resposta.", feedback: "Nível 2: Navegador Imprudente. Ao responder, confirmaste que o teu e-mail está ativo, tornando-te um alvo para futuros ataques.", points: 4 },
+                    { level: 3, text: "Ignoro o e-mail e apago-o, porque sei que o banco não costuma pedir isto.", feedback: "Nível 3: Utilizador Atento. Evitaste o ataque, mas perdeste a oportunidade de investigar e reportar.", points: 6 },
+                    { level: 4, text: "Não clico. Passo o rato (hover) sobre o link para ver o URL real e contacto o banco pelos canais oficiais.", feedback: "Nível 4: Defensor Ativo. Validaste a ameaça sem te expores e tomaste a atitude correta.", points: 8 },
+                    { level: 5, text: "Identifico o domínio falso, marco a mensagem como SPAM/Phishing no e-mail e aviso os meus colegas sobre o golpe.", feedback: "Nível 5: Mestre da Cibersegurança. Além de te protegeres, ajudaste a educar a tua comunidade e a treinar o filtro de spam.", points: 10 }
+                ]
+            },
+            {
+                id: 2,
+                title: "O Anexo Suspeito (Malware)",
+                context: "Um colega envia-te um e-mail com um ficheiro em anexo chamado 'fatura_final.exe'. A mensagem não tem texto nenhum, apenas o anexo.",
+                dilema: "O que fazes com este ficheiro?",
+                options: [
+                    { level: 1, text: "Abro imediatamente. Se vem de um colega conhecido, de certeza que é um ficheiro seguro.", feedback: "Nível 1: Confiança Cega. Ficheiros '.exe' são executáveis e frequentemente escondem Malware ou Vírus.", points: 2 },
+                    { level: 2, text: "Guardo o ficheiro no computador para abrir mais tarde ou em casa.", feedback: "Nível 2: Risco Adiado. Descarregar o ficheiro já pode comprometer o sistema, mesmo sem o abrir imediatamente.", points: 4 },
+                    { level: 3, text: "Apago o e-mail porque não estou à espera de nenhuma fatura.", feedback: "Nível 3: Utilizador Atento. Evitaste a infeção, mas o teu colega pode estar com o e-mail comprometido sem saber.", points: 6 },
+                    { level: 4, text: "Não abro e pergunto ao colega (pessoalmente ou por telefone) se ele realmente me enviou aquele ficheiro.", feedback: "Nível 4: Defensor Ativo. Usaste um canal de comunicação alternativo para verificar a autenticidade.", points: 8 },
+                    { level: 5, text: "Não abro, reconheço o perigo da extensão '.exe', contacto o colega e reporto a situação ao departamento informático.", feedback: "Nível 5: Mestre da Cibersegurança. Trataste do incidente de forma exemplar, protegendo toda a rede da organização.", points: 10 }
+                ]
+            },
+            {
+                id: 3,
+                title: "Gestão de Palavras-Passe",
+                context: "A escola implementou uma nova plataforma que exige o registo de todos os professores. Tens de criar uma nova palavra-passe.",
+                dilema: "Qual é a tua estratégia para criar e guardar esta password?",
+                options: [
+                    { level: 1, text: "Uso a palavra 'password123' ou a minha data de nascimento para não me esquecer.", feedback: "Nível 1: Vulnerável Digital. Usar dados previsíveis ou dicionários comuns facilita imenso a vida aos atacantes.", points: 2 },
+                    { level: 2, text: "Uso exatamente a mesma palavra-passe que já uso nas minhas redes sociais e no e-mail pessoal.", feedback: "Nível 2: Navegador Imprudente. Reutilizar passwords significa que se um site for atacado, todas as tuas contas ficam comprometidas.", points: 4 },
+                    { level: 3, text: "Crio uma password nova e complexa, e escrevo-a num post-it colado ao monitor do computador.", feedback: "Nível 3: Risco Físico. Tens uma boa password, mas falhaste ao deixá-la visível num espaço partilhado.", points: 6 },
+                    { level: 4, text: "Crio uma 'frase-passe' (ex: O!MeuGatoGostaDePescada) e memorizo-a, sem a escrever em lado nenhum.", feedback: "Nível 4: Defensor Ativo. Usas frases longas e fáceis de memorizar, uma excelente técnica de segurança.", points: 8 },
+                    { level: 5, text: "Uso um Gestor de Palavras-Passe para gerar e guardar uma password única e forte, e ativo a Autenticação de 2 Fatores.", feedback: "Nível 5: Mestre da Cibersegurança. Aplicaste as melhores defesas possíveis contra o roubo de identidade.", points: 10 }
+                ]
+            },
+            {
+                id: 4,
+                title: "Redes Wi-Fi e Acesso Remoto",
+                context: "Estás num café movimentado e precisas de enviar um e-mail profissional urgente. A rede Wi-Fi do café é aberta (sem palavra-passe).",
+                dilema: "Como garantes a segurança da informação enquanto usas esta rede?",
+                options: [
+                    { level: 1, text: "Ligo-me à rede Wi-Fi do café e trato de todos os assuntos normalmente, incluindo aceder ao banco.", feedback: "Nível 1: Exposição Inconsciente. Redes abertas permitem que hackers intercetem facilmente os teus dados e passwords.", points: 2 },
+                    { level: 2, text: "Ligo-me à rede, mas tento fazer o envio muito depressa para estar o mínimo de tempo possível exposto.", feedback: "Nível 2: Falsa Segurança. O roubo de dados em redes não encriptadas demora apenas segundos.", points: 4 },
+                    { level: 3, text: "Só navego em sites que tenham o cadeado verde (HTTPS) para garantir que a ligação é segura.", feedback: "Nível 3: Utilizador Atento. O HTTPS ajuda muito, mas numa rede aberta a tua segurança geral continua vulnerável.", points: 6 },
+                    { level: 4, text: "Ligo-me à rede pública, mas ativo imediatamente uma VPN de confiança para encriptar a minha navegação.", feedback: "Nível 4: Defensor Ativo. A VPN cria um túnel seguro, ocultando a tua atividade dos restantes utilizadores da rede.", points: 8 },
+                    { level: 5, text: "Evito totalmente redes públicas para trabalho. Faço um hotspot seguro a partir dos dados móveis do meu telemóvel.", feedback: "Nível 5: Mestre da Cibersegurança. Eliminaste o risco pela raiz, usando a tua própria ligação privada e controlada.", points: 10 }
+                ]
+            },
+            {
+                id: 5,
+                title: "Privacidade nas Redes Sociais",
+                context: "Estás de férias e queres partilhar uma foto muito entusiasmado, onde aparece subtilmente o teu cartão de embarque e a chave do hotel.",
+                dilema: "Como geres a tua pegada digital e privacidade online?",
+                options: [
+                    { level: 1, text: "Publico imediatamente no modo público para que todos os meus amigos e os amigos deles possam ver.", feedback: "Nível 1: Exposição Perigosa. Partilhar a localização em tempo real e códigos de barras pode levar a assaltos ou roubo de viagens.", points: 2 },
+                    { level: 2, text: "Tapo a cara com um emoji, mas deixo o cartão de embarque visível para mostrar o destino.", feedback: "Nível 2: Omissão Irrelevante. Os códigos de barras dos bilhetes contêm dados pessoais valiosos que qualquer um pode ler.", points: 4 },
+                    { level: 3, text: "Publico apenas para a lista de 'Amigos', mas deixo que me façam marcações (tags) sem aprovação prévia.", feedback: "Nível 3: Cuidado Básico. Limitaste o público, mas a falta de controlo nas marcações (tags) retira-te a gestão da tua imagem.", points: 6 },
+                    { level: 4, text: "Corto a foto para não mostrar documentos e publico apenas quando já estiver de regresso a casa.", feedback: "Nível 4: Defensor Ativo. Protegeste dados sensíveis e evitaste denunciar que a tua casa estava vazia.", points: 8 },
+                    { level: 5, text: "Além de publicar apenas após o regresso, verifico regularmente as minhas definições de privacidade e não cedo dados à plataforma.", feedback: "Nível 5: Mestre da Cibersegurança. Tens total controlo sobre a tua exposição digital e a gestão da tua identidade online.", points: 10 }
+                ]
+            },
+            {
+                id: 6,
+                title: "Resposta a Incidentes",
+                context: "Recebes uma notificação real da Google/Microsoft: 'Tentativa de login bloqueada a partir de um novo dispositivo na Rússia'.",
+                dilema: "O que fazes ao perceberes que os teus dados podem ter sido comprometidos?",
+                options: [
+                    { level: 1, text: "Fecho o aviso e continuo a trabalhar normalmente. Se o login foi bloqueado, o problema já está resolvido.", feedback: "Nível 1: Passividade Crítica. Ignorar alertas significa que o atacante já sabe a tua password e tentará novamente.", points: 2 },
+                    { level: 2, text: "Mudo a palavra-passe para uma muito parecida (ex: adiciono o número '1' no fim da password antiga).", feedback: "Nível 2: Solução Fraca. Variações simples da mesma password são rapidamente decifradas por programas automáticos.", points: 4 },
+                    { level: 3, text: "Mudo a palavra-passe por uma nova e complexa e não penso mais no assunto.", feedback: "Nível 3: Reação Funcional. Resolveste o problema mais urgente, mas não garantiste a segurança total da conta.", points: 6 },
+                    { level: 4, text: "Mudo a palavra-passe, e nas opções da conta faço 'Terminar Sessão em todos os outros dispositivos'.", feedback: "Nível 4: Defensor Ativo. Cortaste ativamente o acesso de qualquer dispositivo não autorizado que estivesse ligado.", points: 8 },
+                    { level: 5, text: "Sigo os passos anteriores, ativo a Autenticação de 2 Fatores (2FA) e verifico o site HaveIBeenPwned para ver se fui alvo de fuga de dados.", feedback: "Nível 5: Mestre da Cibersegurança. Agiste de forma completa: contenção, prevenção futura e investigação da origem.", points: 10 }
+                ]
+            },
+            {
+                id: 7,
+                title: "Cyberbullying",
+                context: "Num grupo online da escola, percebes que um aluno ou colega está a ser alvo de comentários ofensivos e montagens humilhantes.",
+                dilema: "Qual é a tua atitude perante esta agressão digital?",
+                options: [
+                    { level: 1, text: "Acho piada à montagem e partilho com outras pessoas, minimizando o impacto.", feedback: "Nível 1: Cumplicidade. Ao partilhar, tornaste-te um participante ativo no ciclo de cyberbullying.", points: 2 },
+                    { level: 2, text: "Ignoro e não faço nada. O problema não é meu e não me quero envolver em confusões.", feedback: "Nível 2: Omissão Perigosa. A passividade permite que o abuso continue e que o agressor sinta impunidade.", points: 4 },
+                    { level: 3, text: "Envio uma mensagem privada à vítima a dizer para não ligar aos comentários.", feedback: "Nível 3: Apoio Limitado. Foste empático(a), mas não tomaste nenhuma ação concreta para parar a agressão no grupo.", points: 6 },
+                    { level: 4, text: "Guardo provas (capturas de ecrã) e denuncio imediatamente a situação aos responsáveis.", feedback: "Nível 4: Defensor Ativo. Agiste de forma ética, protegendo a vítima e ativando os canais corretos de resolução.", points: 8 },
+                    { level: 5, text: "Denuncio as publicações, apoio a vítima, guardo provas e promovo um debate educacional sobre empatia online.", feedback: "Nível 5: Educador Digital. Foste além da resolução do problema e usaste o incidente para intervir e educar a comunidade.", points: 10 }
+                ]
+            },
+            {
+                id: 8,
+                title: "Burlas e Fraudes Online",
+                context: "Vês um anúncio atrativo nas redes sociais: um computador topo de gama por 10% do valor de mercado, com o alerta 'Promoção acaba em 5 minutos!'.",
+                dilema: "Como geres esta oportunidade incrivelmente tentadora?",
+                options: [
+                    { level: 1, text: "Faço a compra imediatamente usando o meu cartão de crédito principal para não perder o desconto.", feedback: "Nível 1: Vítima Fácil. Cedeste à tática de urgência e expuseste os teus dados financeiros a uma fraude.", points: 2 },
+                    { level: 2, text: "Desconfio um pouco, mas uso um método alternativo como o MBWay. Se for falso, perco pouco dinheiro.", feedback: "Nível 2: Risco Desnecessário. Minimizaste o dano financeiro, mas continuas a fornecer dados a burlões.", points: 4 },
+                    { level: 3, text: "Procuro a mesma promoção noutros sites grandes. Como não encontro, acabo por ignorar.", feedback: "Nível 3: Prevenção Intuitiva. A hesitação protegeu-te, mas dependeu mais da sorte do que de um método de análise.", points: 6 },
+                    { level: 4, text: "Desconfio e não clico. Lembro-me da regra: 'Se parece bom demais para ser verdade, provavelmente é mentira'.", feedback: "Nível 4: Defensor Ativo. Aplicaste o ceticismo saudável e evitaste ser alvo de uma fraude clássica.", points: 8 },
+                    { level: 5, text: "Identifico a burla, analiso a URL e denuncio o anúncio e a página falsa à plataforma onde a encontrei.", feedback: "Nível 5: Mestre da Cibersegurança. Além de não caíres no esquema, ajudaste ativamente a derrubar a infraestrutura criminosa.", points: 10 }
+                ]
+            },
+            {
+                id: 9,
+                title: "Dependência Digital",
+                context: "Dás por ti a verificar as notificações do telemóvel constantemente, sacrificando horas de sono e sentindo muita ansiedade se ficas sem internet.",
+                dilema: "Como lidas com a gestão do teu tempo de ecrã e bem-estar?",
+                options: [
+                    { level: 1, text: "Acho que é normal hoje em dia. Durmo menos mas não é nada de grave, toda a gente faz o mesmo.", feedback: "Nível 1: Negação. Ignorar a dependência digital pode causar graves problemas psicológicos e de rendimento.", points: 2 },
+                    { level: 2, text: "Tento não usar na cama, mas acabo sempre por ceder ao 'scroll infinito' nas redes sociais.", feedback: "Nível 2: Falta de Controlo. Reconheces que é um problema, mas não consegues implementar medidas eficazes.", points: 4 },
+                    { level: 3, text: "Coloco o telemóvel em silêncio à noite para não me acordar, melhorando o meu sono.", feedback: "Nível 3: Gestão Básica. Melhoraste o repouso, mas não resolveste a ansiedade do uso diurno excessivo.", points: 6 },
+                    { level: 4, text: "Defino limites de tempo diários nas definições do telemóvel e garanto que tenho atividades offline.", feedback: "Nível 4: Equilíbrio Saudável. Estabeleceste fronteiras mecânicas que ajudam a manter a tua saúde mental e foco.", points: 8 },
+                    { level: 5, text: "Aplico rotinas de 'detox digital', uso o telemóvel de forma intencional e sensibilizo outras pessoas para o tema.", feedback: "Nível 5: Liderança Pessoal. Dominas a tecnologia em vez de seres dominado por ela, promovendo bons hábitos.", points: 10 }
+                ]
+            },
+            {
+                id: 10,
+                title: "Fuga de Dados Pessoais (Oversharing)",
+                context: "Precisas de partilhar rapidamente um ficheiro com as classificações finais, NIFs e contatos dos teus alunos a todos os docentes da turma.",
+                dilema: "Que meio escolhes para garantir a confidencialidade destes dados?",
+                options: [
+                    { level: 1, text: "Envio o ficheiro Excel diretamente no grupo de WhatsApp dos professores para ser mais rápido.", feedback: "Nível 1: Violação Grave de Privacidade. Redes sociais e apps de chat não são locais seguros para dados institucionais.", points: 2 },
+                    { level: 2, text: "Envio o ficheiro por e-mail, colocando os e-mails de toda a gente visíveis no campo 'Para' ou 'CC'.", feedback: "Nível 2: Exposição Indevida. Além de partilhares o ficheiro sem proteção, expuseste o contacto de toda a gente.", points: 4 },
+                    { level: 3, text: "Envio por e-mail com as pessoas em 'BCC' (cópia oculta), anexando o ficheiro normal.", feedback: "Nível 3: Risco de Interceção. Foste mais cuidadoso com os contactos, mas o documento viaja sem qualquer cifra.", points: 6 },
+                    { level: 4, text: "Partilho o documento exclusivamente numa pasta segura da Cloud institucional, dando acesso apenas a quem precisa.", feedback: "Nível 4: Defensor Ativo. Utilizaste a infraestrutura adequada da organização e geriste as permissões corretamente.", points: 8 },
+                    { level: 5, text: "Guardo o ficheiro na Cloud, protejo-o com palavra-passe e partilho a password num canal separado. Cumpro a 100% o RGPD.", feedback: "Nível 5: Guardião da Privacidade. Seguiste os protocolos mais exigentes, garantindo que os dados dos alunos nunca vazem.", points: 10 }
+                ]
+            }
+        ];
+
+        const App = () => {
+            const [gameState, setGameState] = useState('intro');
+            const [currentIdx, setCurrentIdx] = useState(0);
+            const [score, setScore] = useState(0);
+            const [lastFeedback, setLastFeedback] = useState(null);
+
+            const shuffledScenarios = useMemo(() => {
+                return scenariosData.map(s => ({
+                    ...s,
+                    options: shuffleArray(s.options)
+                }));
+            }, [gameState === 'intro']);
+
+            const getLevelDetails = (totalScore) => {
+                const avg = totalScore / scenariosData.length;
+                if (avg >= 10) return {
+                    level: 5, label: "Mestre da Cibersegurança", color: "text-purple-700", bg: "bg-purple-50", border: "border-purple-300",
+                    profile: "Comportamento exemplar. Demonstras um excelente domínio técnico e forte sentido crítico na proteção de dados. Sabes como reagir e prevenir ameaças avançadas.",
+                    strengths: ["Uso de Gestores de Passwords", "Autenticação em 2 Fatores (2FA)", "Identificação de Phishing", "Gestão de Privacidade"],
+                    actionPlan: "Parabéns! Estás num patamar de excelência. O teu desafio agora é a literacia comunitária: ajuda alunos e colegas a adotarem estas mesmas práticas. Ensina-os a desconfiar de ofertas online e a proteger a sua pegada digital.",
+                    congrats: `Fantástico! Atingiste a pontuação máxima de ${scenariosData.length * 10} pontos. A tua ciber-higiene é irrepreensível.`
+                };
+                if (avg >= 8) return {
+                    level: 4, label: "Defensor Ativo", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200",
+                    profile: "Práticas seguras consolidadas. Usas as ferramentas de proteção adequadas e desconfias ativamente das armadilhas online.",
+                    strengths: ["Criação de Passwords Fortes", "Navegação Segura", "Verificação de Fontes"],
+                    actionPlan: "Muito bem! Para atingires a mestria total, garante que utilizas Autenticação de 2 Fatores (2FA) em todas as tuas contas importantes e considera utilizar um Gestor de Passwords dedicado."
+                };
+                if (avg >= 6) return {
+                    level: 3, label: "Utilizador Atento", color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-200",
+                    profile: "Conheces os riscos básicos e adotas algumas medidas de segurança, mas ainda cedes à conveniência em alguns momentos.",
+                    strengths: ["Consciência Básica de Riscos", "Privacidade Moderada"],
+                    actionPlan: "Estás no bom caminho, mas precisas de eliminar os 'atalhos'. Para de reutilizar palavras-passe e não confies apenas no cadeado verde (HTTPS). Mantém o teu sistema operativo e aplicações sempre atualizados."
+                };
+                if (avg >= 4) return {
+                    level: 2, label: "Navegador Imprudente", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200",
+                    profile: "Zona de Risco. O teu comportamento é maioritariamente reativo. Ao priorizares a rapidez sobre a segurança, ficas muito suscetível a burlas e roubo de dados.",
+                    strengths: ["Reconhecimento da Tecnologia"],
+                    actionPlan: "Atenção! Começa por alterar imediatamente as tuas palavras-passe críticas (e-mail, banco) para versões longas e únicas. Nunca cliques em links de e-mails inesperados, mesmo que pareçam ser de conhecidos."
+                };
+                return {
+                    level: 1, label: "Vulnerável Digital", color: "text-red-700", bg: "bg-red-50", border: "border-red-200",
+                    profile: "Exposição Máxima. A ausência de práticas de ciber-higiene coloca as tuas informações, a tua organização e a tua vida financeira em perigo iminente.",
+                    strengths: ["Participação no Diagnóstico"],
+                    actionPlan: "URGENTE: É crucial rever todos os teus hábitos digitais. Pede apoio ao departamento de informática ou a um colega experiente para ativar a proteção básica (antivírus, 2FA) nos teus equipamentos e contas."
+                };
+            };
+
+            const handleDecision = (option) => {
+                setLastFeedback({ message: option.feedback, level: option.level, points: option.points });
+                setScore(prev => prev + option.points);
+                setGameState('feedback');
+            };
+
+            const nextStep = () => {
+                if (currentIdx < shuffledScenarios.length - 1) {
+                    setCurrentIdx(prev => prev + 1);
+                    setGameState('scenario');
+                } else {
+                    setGameState('final');
+                }
+            };
+
+            return (
+                <div className="min-h-screen p-4 flex flex-col items-center justify-center">
+                    <div className="max-w-4xl w-full bg-white rounded-[2rem] shadow-2xl border border-slate-200 overflow-hidden flex flex-col min-h-[720px] relative animate-fade-in">
+                        
+                        {/* Header Fixo */}
+                        <div className="bg-[#0f172a] p-6 text-white flex justify-between items-center border-b-4 border-blue-500">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-blue-500 rounded-xl shadow-lg">
+                                    <Icon name="shield" size={32} />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-black uppercase tracking-tight leading-tight">Missão Ciber-Higiene</h1>
+                                </div>
+                            </div>
+                            <div className="text-right flex flex-col items-end gap-1">
+                                {gameState !== 'intro' && gameState !== 'levels' && gameState !== 'final' && (
+                                    <div className="bg-slate-800 px-4 py-1.5 rounded-xl border border-slate-700 shadow-inner">
+                                        <div className="text-[9px] uppercase text-blue-400 font-bold leading-none mb-1">Score de Segurança</div>
+                                        <div className="text-xl font-mono font-bold text-white leading-none">{score}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Conteúdo Principal */}
+                        <div className="p-8 flex-grow flex flex-col">
+                            
+                            {gameState === 'intro' && (
+                                <div className="flex-grow flex flex-col items-center justify-center space-y-8 text-center animate-fade-in">
+                                    <div className="p-10 bg-blue-50 rounded-full border-2 border-blue-100 shadow-inner">
+                                        <Icon name="lock" size={110} className="text-blue-600" />
+                                    </div>
+                                    <div className="space-y-4 max-w-2xl">
+                                        <h2 className="text-4xl font-black text-slate-800 tracking-tighter leading-tight uppercase italic">Navegar com Segurança</h2>
+                                        <p className="text-slate-500 text-lg leading-relaxed">
+                                            Prepara-te para um protocolo de decisão digital. Avalia as tuas práticas de Ciber-higiene através de {scenariosData.length} cenários reais de ameaças online.
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <button 
+                                            onClick={() => setGameState('levels')}
+                                            className="px-8 py-5 border-2 border-slate-200 text-slate-600 rounded-[2rem] font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
+                                        >
+                                            <Icon name="info" size={24} /> Conhecer os Níveis
+                                        </button>
+                                        <button 
+                                            onClick={() => { setScore(0); setCurrentIdx(0); setGameState('scenario'); }}
+                                            className="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-4"
+                                        >
+                                            Iniciar Missão <Icon name="chevron-right" size={28} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameState === 'levels' && (
+                                <div className="flex-grow space-y-6 animate-fade-in">
+                                    <div className="text-center space-y-2 mb-4">
+                                        <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">Os 5 Níveis de Segurança</h2>
+                                        <p className="text-slate-500 text-sm italic">Baseados em referenciais de Ciber-higiene e proteção de dados.</p>
+                                    </div>
+                                    <div className="grid gap-3">
+                                        {levelsInfo.map((l) => (
+                                            <div key={l.level} className={`p-4 rounded-2xl border-2 flex items-start gap-4 transition-all hover:shadow-md ${l.bg} ${l.color.replace('text-', 'border-').replace('700', '200')}`}>
+                                                <div className={`p-2 rounded-xl bg-white shadow-sm ${l.color}`}>
+                                                    <Icon name={l.icon} size={24} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-black text-xs uppercase px-2 py-0.5 bg-white rounded-full shadow-sm">Nível {l.level}</span>
+                                                        <h4 className={`font-black text-lg ${l.color}`}>{l.label}</h4>
+                                                    </div>
+                                                    <p className="text-slate-600 text-sm mt-1 leading-snug font-medium">{l.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="pt-4 flex justify-center">
+                                        <button 
+                                            onClick={() => setGameState('intro')}
+                                            className="px-10 py-4 bg-[#0f172a] text-white rounded-[1.5rem] font-black text-lg hover:bg-slate-800 transition-all shadow-xl flex items-center gap-3"
+                                        >
+                                            <Icon name="arrow-left" size={24} /> Voltar
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameState === 'scenario' && (
+                                <div className="space-y-6 animate-fade-in">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
+                                            <Icon name="target" size={12} className="text-blue-400" /> Cenário {currentIdx + 1} de {shuffledScenarios.length}
+                                        </div>
+                                    </div>
+                                    <h2 className="text-3xl font-black text-slate-800 leading-tight border-l-[10px] border-blue-500 pl-6 py-1">
+                                        {shuffledScenarios[currentIdx].title}
+                                    </h2>
+                                    <div className="p-7 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 text-slate-600 italic text-xl leading-relaxed shadow-inner">
+                                        "{shuffledScenarios[currentIdx].context}"
+                                    </div>
+                                    <div className="flex items-start gap-4 p-2">
+                                        <div className="p-3 bg-blue-100 rounded-2xl text-blue-600">
+                                            <Icon name="help-circle" size={28} />
+                                        </div>
+                                        <p className="font-bold text-slate-900 text-2xl leading-tight pt-1">
+                                            {shuffledScenarios[currentIdx].dilema}
+                                        </p>
+                                    </div>
+                                    <div className="grid gap-4 pt-2">
+                                        {shuffledScenarios[currentIdx].options.map((opt, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => handleDecision(opt)}
+                                                className="w-full p-5 text-left border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50/50 rounded-[1.5rem] transition-all flex items-start gap-5 group shadow-sm hover:shadow-xl relative"
+                                            >
+                                                <div className="h-9 w-9 rounded-xl bg-slate-100 text-slate-400 text-base font-black flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white shrink-0 mt-0.5 transition-colors">
+                                                    {i + 1}
+                                                </div>
+                                                <span className="text-slate-700 font-semibold text-lg leading-snug pt-1">{opt.text}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameState === 'feedback' && lastFeedback && (
+                                <div className="flex-grow flex flex-col items-center justify-center space-y-10 text-center animate-fade-in max-w-2xl mx-auto">
+                                    <div className="relative">
+                                        <div className={`p-10 rounded-full shadow-2xl ${lastFeedback.level >= 4 ? 'bg-green-100 text-green-600 shadow-green-100' : lastFeedback.level >= 3 ? 'bg-teal-100 text-teal-600 shadow-teal-100' : 'bg-red-100 text-red-600 shadow-red-100'}`}>
+                                            <Icon name={lastFeedback.level >= 4 ? "shield-check" : "shield-alert"} size={100} />
+                                        </div>
+                                        <div className="absolute -top-1 -right-1 bg-slate-900 text-white w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl border-4 border-white shadow-lg">
+                                            {lastFeedback.level}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <h3 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">Análise de Segurança</h3>
+                                        <div className="bg-[#0f172a] text-blue-400 p-10 rounded-[3rem] shadow-2xl italic text-2xl leading-relaxed border-b-[12px] border-blue-500 font-semibold">
+                                            "{lastFeedback.message}"
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={nextStep}
+                                        className="px-16 py-6 bg-[#0f172a] text-white rounded-[2rem] font-black text-xl flex items-center gap-4 hover:bg-slate-800 transition-all shadow-2xl active:scale-95 group"
+                                    >
+                                        {currentIdx === shuffledScenarios.length - 1 ? "Ver Relatório de Segurança" : "Próximo Desafio"} 
+                                        <Icon name="arrow-right" size={28} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {gameState === 'final' && (
+                                <div className="space-y-8 py-4 animate-fade-in">
+                                    <div className="text-center space-y-4">
+                                        <h2 className="text-5xl font-black text-[#0f172a] uppercase tracking-tighter leading-none">Relatório de Ciber-Higiene</h2>
+                                        <div className="flex items-center justify-center gap-5 text-slate-500 font-bold uppercase tracking-[0.2em] text-[11px] bg-slate-100 py-2.5 rounded-full px-8 inline-flex mx-auto border border-slate-200 shadow-sm">
+                                            <span className="flex items-center gap-1.5"><Icon name="shield" size={14} /> DIAGNÓSTICO FINAL</span>
+                                        </div>
+                                    </div>
+
+                                    {(() => {
+                                        const info = getLevelDetails(score);
+                                        return (
+                                            <div className={`p-8 rounded-[3.5rem] border-4 ${info.bg} ${info.border} space-y-8 shadow-[0_30px_60px_rgba(0,0,0,0.08)] relative overflow-hidden`}>
+                                                <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
+                                                    <Icon name="lock" size={180} />
+                                                </div>
+                                                
+                                                <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b pb-10 border-slate-200 relative z-10">
+                                                    <div className="flex items-center gap-8 text-center md:text-left">
+                                                        <div className={`h-32 w-32 rounded-[2.5rem] bg-white border-[6px] ${info.color.replace('text-', 'border-')} flex items-center justify-center text-7xl font-black shadow-2xl transition-transform hover:scale-105 duration-300`}>
+                                                            {info.level}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 mb-2">Perfil de Risco</p>
+                                                            <h4 className={`text-5xl font-black ${info.color} leading-none tracking-tighter`}>{info.label}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-[#0f172a] px-10 py-7 rounded-[2.5rem] text-center min-w-[200px] shadow-2xl border-b-8 border-blue-500 transform hover:scale-105 transition-transform">
+                                                        <p className="text-[11px] text-blue-400 font-black uppercase mb-1 tracking-[0.2em]">Score Obtido</p>
+                                                        <p className="text-6xl font-mono font-black text-white leading-none">{score}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-left relative z-10">
+                                                    <div className="space-y-8">
+                                                        {info.congrats && (
+                                                            <div className="p-6 bg-yellow-100 border-2 border-yellow-200 rounded-3xl shadow-sm animate-fade-in">
+                                                                <p className="text-yellow-900 font-black text-lg leading-tight flex items-start gap-3">
+                                                                    <Icon name="sparkles" size={28} className="shrink-0" /> 
+                                                                    <span>{info.congrats}</span>
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        <div className="space-y-3">
+                                                            <h5 className="font-black text-slate-800 text-xl flex items-center gap-3 underline decoration-blue-500 decoration-4">
+                                                                <Icon name="user-check" size={24} className="text-blue-600" /> Caracterização do Perfil
+                                                            </h5>
+                                                            <div className="bg-white/80 p-6 rounded-[2rem] border border-slate-100 shadow-sm leading-relaxed text-lg font-semibold text-slate-700">
+                                                                {info.profile}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="space-y-3">
+                                                            <h5 className="font-black text-slate-800 text-xl flex items-center gap-3 underline decoration-blue-500 decoration-4">
+                                                                <Icon name="key" size={24} className="text-blue-600" /> Competências de Segurança
+                                                            </h5>
+                                                            <div className="flex flex-wrap gap-2 pt-1">
+                                                                {info.strengths.map((s, i) => (
+                                                                    <span key={i} className="px-4 py-2 bg-white border-2 border-slate-100 rounded-2xl text-[11px] font-black text-slate-600 shadow-sm flex items-center gap-2 uppercase tracking-tighter hover:border-blue-500 transition-colors">
+                                                                        <Icon name="check" size={14} className="text-blue-500" /> {s}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-8 bg-white/90 rounded-[3rem] border-2 border-blue-100 shadow-2xl space-y-6 flex flex-col">
+                                                        <h5 className="flex items-center gap-3 font-black text-lg uppercase text-blue-800 tracking-tighter border-b-2 pb-4 border-blue-50">
+                                                            <Icon name="shield-alert" size={24} /> Plano de Ação e Melhoria
+                                                        </h5>
+                                                        <div className="space-y-6 flex-grow">
+                                                            <p className="text-slate-700 leading-relaxed text-lg font-medium italic border-l-8 border-blue-500 pl-6 bg-blue-50/30 py-4 rounded-r-2xl">
+                                                                {info.actionPlan}
+                                                            </p>
+                                                            <div className="mt-auto p-4 bg-slate-900 rounded-2xl text-xs font-bold text-blue-400 italic border border-slate-800 flex items-start gap-3">
+                                                                <Icon name="info" size={18} className="shrink-0" />
+                                                                <span>Dica de Ciber-Higiene: Usa a regra de ouro da desconfiança. Na dúvida, não cliques, não abras anexos e não partilhes palavras-passe.</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    <div className="flex justify-center pt-6">
+                                        <button 
+                                            onClick={() => setGameState('intro')}
+                                            className="px-16 py-6 border-4 border-slate-200 rounded-[2rem] font-black text-slate-400 uppercase text-[11px] tracking-[0.3em] hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                        >
+                                            <Icon name="refresh-cw" size={20} /> Reiniciar Simulação
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+
+                        {/* Rodapé Fixo */}
+                        <div className="px-8 py-5 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] flex justify-between items-center shadow-inner">
+                            <div className="flex items-center gap-2"><Icon name="shield-check" size={16} className="text-blue-500" /> Boas Práticas de Segurança Digital</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
